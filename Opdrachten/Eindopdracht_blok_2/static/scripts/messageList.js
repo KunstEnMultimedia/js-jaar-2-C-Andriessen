@@ -6,7 +6,8 @@ async function renderMessageList() {
   const messages = await messageRes.json();
   const commentRes = await fetch("/comments");
   const comments = await commentRes.json();
-  console.log(messages);
+  const userRes = await fetch("/user");
+  const user = await userRes.json();
 
   messages.sort((a, b) => {
     const aDate = new Date(a.createdAt);
@@ -27,6 +28,15 @@ async function renderMessageList() {
     <hr>
     <p class="fs-5 mb-5 mt-2">${message.message}</p>`
 
+    if(user._id === message.user._id) {
+      messageEl.innerHTML += `
+      <form action="/editMessage" method="post">
+      <input type="hidden" name="messageId" value="${message._id}">
+      <button type="submit" class="btn btn-primary mb-5">Edit post</button>
+      </form>
+      `;
+    }
+
     comments.forEach((comment) => {
       if(comment.message._id === message._id) {
         messageEl.innerHTML += `
@@ -34,7 +44,17 @@ async function renderMessageList() {
         <div class="card-body">
         <span><b>Comment by: </b> ${comment.user.email}</span>
         <p>${comment.comment}</p>
-        </div>
+        `
+        if(user._id === comment.user._id) {
+          messageEl.innerHTML += `
+          <form action="/editComment" method="post">
+          <input type="hidden" name="commentId" value="${comment._id}">
+          <button type="submit" class="btn btn-primary mb-5">Edit comment</button>
+          </form>
+          `;
+        }
+
+        messageEl.innerHTML += `</div>
         </div>`
       }
     });

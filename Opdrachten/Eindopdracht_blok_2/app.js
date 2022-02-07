@@ -178,6 +178,57 @@ app.post("/saveMessage", auth, async (req, res) => {
       res.send(votes);
     });
 
+    // edit controller
+
+    app.get('/user', auth,  async (req,res) => {
+      res.send(req.user);
+    });
+
+    app.post('/editMessage', auth, async (req, res) => {
+      const { messageId } = req.body;
+      const message = await Message.findOne({_id: messageId, user: req.user._id});
+
+      res.send(`
+        <form action=/saveMessageEdit method="post">
+        <textarea placeholder="Write a message" name="message" rows="5" cols="50">${message.message}</textarea>
+        <input type="hidden" name="messageId" value="${message._id}">
+        <button type="submit">Update message</button>
+        </form>
+      `);
+    });
+    app.post('/editComment', auth, async (req, res) => {
+      const { commentId } = req.body;
+      const comment = await Comment.findOne({_id: commentId, user: req.user._id});
+
+      res.send(`
+        <form action=/saveCommentEdit method="post">
+        <textarea placeholder="Write a message" name="comment" rows="5" cols="50">${comment.comment}</textarea>
+        <input type="hidden" name="commentId" value="${comment._id}">
+        <button type="submit">Update comment</button>
+        </form>
+      `);
+    });
+
+    app.post('/saveMessageEdit', auth, async (req, res) => {
+      const { message, messageId } = req.body;
+      if (!message)
+      return res.status(400).json({
+        errorMessage: "Please enter a message.",
+      });
+        await Message.findOneAndUpdate({_id: messageId, user: req.user._id}, {message: message} );
+        res.redirect('/posts.html')
+    });
+
+    app.post('/saveCommentEdit', auth, async (req, res) => {
+      const { comment, commentId } = req.body;
+      if (!comment)
+      return res.status(400).json({
+        errorMessage: "Please enter a message.",
+      });
+        await Comment.findOneAndUpdate({_id: commentId, user: req.user._id}, {comment: comment} );
+        res.redirect('/posts.html')
+    });
+
 app.post("/isLoggedIn", async (req, res) => {
   try {
     const token = req.cookies["auth-token"];
